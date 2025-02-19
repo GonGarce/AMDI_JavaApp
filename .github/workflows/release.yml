@@ -1,0 +1,52 @@
+name: Create release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Create realease folder
+      run: mkdir release
+    - name: Download Mac installer
+      uses: actions/download-artifact@v4
+      with:
+        run-id: 13413778091
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: AppMVC-macos-latest
+        path: release
+    - name: Download Linux installer
+      uses: actions/download-artifact@v4
+      with:
+        run-id: 13413778091
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: AppMVC-ubuntu-latest
+        path: release
+    - name: Download Windows installer
+      uses: actions/download-artifact@v4
+      with:
+        run-id: 13413778091
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: AppMVC-windows-latest
+        path: release
+    - name: Display structure of downloaded files
+      run: ls -R release
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+      run: |
+        gh release delete "$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            -y
+        gh release create "$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="${tag#v}" \
+            --generate-notes \
+            release/*.rpm \
+            release/*.pkg
