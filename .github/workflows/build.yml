@@ -1,0 +1,27 @@
+name: Build installer for supported os
+on:
+  push:
+    branches: [ release/* ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+    name: Build the application
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+      - run: mvn -B install
+      - run: mkdir staging && cp UD2_MVC/target/installer/*.exe staging
+      - name: upload build result
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppMVC-${{matrix.os}}
+          path: staging
