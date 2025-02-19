@@ -25,7 +25,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: staging
-          name: AppMVC-${{matrix.os}}
+          name: AppMVC-${{matrix.os}}-${{ github.ref_name }}
           retention-days: 1
           overwrite: true
   create-release:
@@ -37,20 +37,9 @@ jobs:
     steps:
     - name: Create realease folder
       run: mkdir release
-    - name: Download Mac installer
+    - name: Download installers
       uses: actions/download-artifact@v4
       with:
-        name: AppMVC-macos-latest
-        path: release
-    - name: Download Linux installer
-      uses: actions/download-artifact@v4
-      with:
-        name: AppMVC-ubuntu-latest
-        path: release
-    - name: Download Windows installer
-      uses: actions/download-artifact@v4
-      with:
-        name: AppMVC-windows-latest
         path: release
     - name: Display structure of downloaded files
       run: ls -R release
@@ -59,11 +48,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
       run: |
-        gh release delete "$tag" --repo="$GITHUB_REPOSITORY" -y || echo "Release not found"
+        gh release delete "$tag" --repo="$GITHUB_REPOSITORY" -y || true
         gh release create "$tag" \
             --repo="$GITHUB_REPOSITORY" \
             --title="${tag#v}" \
             --generate-notes \
-            release/*.exe \
-            release/*.rpm \
-            release/*.pkg
+            release/AppMVC-windows-latest-${{ github.ref_name }}/*.exe \
+            release/AppMVC-ubuntu-latest-${{ github.ref_name }}/*.rpm \
+            release/AppMVC-macos-latest-${{ github.ref_name }}/*.pkg
