@@ -101,4 +101,5 @@ call "%JAVA_HOME%\bin\jpackage" ^
   --vendor %VENDOR% ^
   --win-dir-chooser ^
   --win-shortcut ^
+  --win-shortcut-prompt ^
   --win-menu
