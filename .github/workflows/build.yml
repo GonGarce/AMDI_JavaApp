@@ -1,15 +1,10 @@
 name: Build installer for supported os
-on:
-  push:
-    branches: [ release/* ]
+on: push
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
     name: Build the application
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -19,11 +14,3 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
       - run: mvn -B install
-      - run: mkdir staging && cp target/installer/*.* staging
-      - name: upload build result
-        uses: actions/upload-artifact@v4
-        with:
-          path: staging
-          name: AppMVC-${{matrix.os}}
-          retention-days: 1
-          overwrite: true

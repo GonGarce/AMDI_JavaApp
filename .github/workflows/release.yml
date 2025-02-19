@@ -5,9 +5,33 @@ on:
       - "v*"
 
 jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+    name: Build the application
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+      - run: mvn -B install
+      - run: mkdir staging && cp target/installer/*.* staging
+      - name: upload build result
+        uses: actions/upload-artifact@v4
+        with:
+          path: staging
+          name: AppMVC-${{matrix.os}}
+          retention-days: 1
+          overwrite: true
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
+    needs: [build]
     permissions:
       contents: write
     steps:
@@ -16,22 +40,16 @@ jobs:
     - name: Download Mac installer
       uses: actions/download-artifact@v4
       with:
-        run-id: 13413778091
-        github-token: ${{ secrets.GITHUB_TOKEN }}
         name: AppMVC-macos-latest
         path: release
     - name: Download Linux installer
       uses: actions/download-artifact@v4
       with:
-        run-id: 13413778091
-        github-token: ${{ secrets.GITHUB_TOKEN }}
         name: AppMVC-ubuntu-latest
         path: release
     - name: Download Windows installer
       uses: actions/download-artifact@v4
       with:
-        run-id: 13413778091
-        github-token: ${{ secrets.GITHUB_TOKEN }}
         name: AppMVC-windows-latest
         path: release
     - name: Display structure of downloaded files
@@ -48,5 +66,6 @@ jobs:
             --repo="$GITHUB_REPOSITORY" \
             --title="${tag#v}" \
             --generate-notes \
+            release/*.exe \
             release/*.rpm \
             release/*.pkg
